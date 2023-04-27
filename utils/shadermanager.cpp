@@ -11,6 +11,11 @@ void ShaderManager::initialize(){
     shaders["addScalarToBlockShader"] = new Shader("shaders/addScalarToBlock.cs");
     shaders["addArraysShader"] = new Shader("shaders/addArrays.cs");
     shaders["substractArraysShader"] = new Shader("shaders/substractArrays.cs");
+    shaders["getKthBitShader"] = new Shader("shaders/getKthBit.cs");
+    shaders["reorderBySumsShader"] = new Shader("shaders/reorderBySums.cs");
+    shaders["radixSortShader"] = new Shader("shaders/radixSort.cs");
+    shaders["bitonicSortShader"] = new Shader("shaders/bitonicSort.cs");
+    shaders["clearBufferShader"] = new Shader("shaders/clearBuffer.cs");
 }
 
 Shader* ShaderManager::getShader(std::string name){

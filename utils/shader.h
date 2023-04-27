@@ -15,6 +15,7 @@ public:
     void use();
 
     void setInt(const std::string name, int value);
+    void setUInt(const std::string name, unsigned int value);
     void setFloat(const std::string name, float value);
     void setVec3(const std::string name, QVector3D value);
     void setMat4(const std::string name, QMatrix4x4 value);

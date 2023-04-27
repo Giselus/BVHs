@@ -10,15 +10,21 @@ layout (std430, binding = 0) buffer Input{
     int data[];
 } T;
 
-layout (std430, binding = 1) buffer PartialResults{
+layout (std430, binding = 1) buffer Result{
     int data[];
-} P;
+} R;
 
 uniform int n;
+
+uniform int bit;
 
 void main(){
     uint id = gl_GlobalInvocationID.x;
     if(id < n){
-        T.data[id] += P.data[gl_WorkGroupID.x];
+        if((T.data[id] & bit) != 0){
+            R.data[id] = 1;
+        }else{
+            R.data[id] = 0;
+        }
     }
 }

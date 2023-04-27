@@ -2,8 +2,11 @@
 
 #include "gl.h"
 #include "../utils/prefixsum.h"
+#include "../utils/radixsort.h"
 #include "../utils/shader.h"
 #include "../utils/shadermanager.h"
+
+#include <chrono>
 
 void DrawWindow::initialize(){
     ShaderManager::initialize();
@@ -63,22 +66,49 @@ void DrawWindow::initialize(){
     GL::funcs.glBindImageTexture(0, textureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
 
-//    int *output = (int*)malloc(sizeof(int) * n);
-//    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, outputID);
-//    GL::funcs.glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int) * n, output);
-//    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-//    int *expectedOutput = (int*)malloc(sizeof(int) * n);
-//    expectedOutput[0] = randomNums[0];
-//    for(int i = 1; i < n; i++){
-//        expectedOutput[i] = expectedOutput[i-1] + randomNums[i];
+//    int n = 1000000;
+//    int *randomNums = (int*)malloc(sizeof(int) * n);
+//    for(int i = 0; i < n; i++){
+//        randomNums[i] = rand()%1000;
 //    }
 
-//    for(int i = 0; i < n; i++){
-//        if(expectedOutput[i] != output[i]){
-//            qDebug() << i << " " << expectedOutput[i] << " " << output[i] << " " << output[i-1] << " " << randomNums[i];
+//    unsigned int inputID;
+//    GL::funcs.glGenBuffers(1, &inputID);
+//    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, inputID);
+//    GL::funcs.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int) * n, randomNums, GL_STATIC_DRAW);
+//    GL::funcs.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, inputID);
+//    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+//    GL::funcs.glMemoryBarrier(GL_ALL_BARRIER_BITS);
+////    printBuffer<int>(10, inputID);
+
+//    GLuint query;
+//    GLuint64 elapsed_time;
+//    GL::funcs.glGenQueries(1, &query);
+//    GL::funcs.glBeginQuery(GL_TIME_ELAPSED, query);
+//    unsigned int outputID;
+////    outputID = prefixSum(n, inputID, true);
+//    outputID = radixSort(n, 30, inputID);
+
+//    GL::funcs.glEndQuery(GL_TIME_ELAPSED);
+//    int done = 0;
+//    while(!done){
+//        GL::funcs.glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
+//    }
+//    GL::funcs.glGetQueryObjectui64v(query, GL_QUERY_RESULT, &elapsed_time);
+////    printBuffer<int>(n, outputID);
+//    int *outArr = getArrayFromBuffer<int>(n, outputID);
+//    std::sort(randomNums, randomNums + n);
+//    for(int i = 1; i < n; i++){
+//        if(outArr[i] != randomNums[i]){
+//            printBuffer<int>(i, 10, outputID);
+//            qDebug() << "Array is not sorted!" << i << randomNums[i] << outArr[i];
 //            break;
 //        }
 //    }
+//    qDebug() << "radix sort took " << (float)elapsed_time/1000000.0 << " ms";
+//    GL::funcs.glDeleteBuffers(1, &outputID);
+
+
 }
 
 void DrawWindow::render(){
@@ -110,13 +140,16 @@ void DrawWindow::render(){
     GL::funcs.glBindVertexArray(VAO);
     GL::funcs.glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    int n = 50000000;
-
+//    int n = 12486;
+//    int n = 100000;
+    int n = 1000000;
+//    int n = 50000000;
+//    int n = 409600;
     int *randomNums = (int*)malloc(sizeof(int) * n);
     for(int i = 0; i < n; i++){
-        randomNums[i] = rand()%10;
+        randomNums[i] = rand()%1000000;
     }
-
+    int *expectedOutput = (int*)malloc(sizeof(int) * n);
     unsigned int inputID;
     GL::funcs.glGenBuffers(1, &inputID);
     GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, inputID);
@@ -124,21 +157,28 @@ void DrawWindow::render(){
     GL::funcs.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, inputID);
     GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     GL::funcs.glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-    for(int i = 0; i < 1; i++){
+    for(int i = 0; i < 5; i++){
         GLuint query;
         GLuint64 elapsed_time;
         GL::funcs.glGenQueries(1, &query);
         GL::funcs.glBeginQuery(GL_TIME_ELAPSED, query);
         unsigned int outputID;
-        outputID = prefixSum(n, inputID, true);
+//        outputID = prefixSum(n, inputID, 1);
+        outputID = radixSort(n, 30, inputID);
         GL::funcs.glEndQuery(GL_TIME_ELAPSED);
         int done = 0;
         while(!done){
             GL::funcs.glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
         }
         GL::funcs.glGetQueryObjectui64v(query, GL_QUERY_RESULT, &elapsed_time);
-        qDebug() << "counting prefix sums took " << (float)elapsed_time/1000000.0 << " ms";
+        qDebug() << "radix sort took " << (float)elapsed_time/1000000.0 << " ms";
         GL::funcs.glDeleteBuffers(1, &outputID);
     }
+//    auto start = std::chrono::high_resolution_clock::now();
+//    std::sort(randomNums, randomNums + n);
+
+//    auto stop = std::chrono::high_resolution_clock::now();
+//    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+//    qDebug() << "stl sort took:" << duration.count()/1000.0 << " ms";
+
 }

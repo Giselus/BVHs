@@ -59,14 +59,14 @@ Shader::Shader(const std::string computePath)
     GL::funcs.glShaderSource(computeProgram, 1, &computeCode, NULL);
     GL::funcs.glCompileShader(computeProgram);
 
-    // int success;
-    // char infoLog[1024];
-    // GL::funcs.glGetShaderiv(computeProgram, GL_COMPILE_STATUS, &success);
-    // qDebug() << success;
-    // if(!success){
-    //     GL::funcs.glGetShaderInfoLog(computeProgram , 1024, NULL, infoLog);
-    //     qDebug() << infoLog;
-    // }
+     int success;
+     char infoLog[1024];
+     GL::funcs.glGetShaderiv(computeProgram, GL_COMPILE_STATUS, &success);
+     qDebug() << success;
+     if(!success){
+         GL::funcs.glGetShaderInfoLog(computeProgram , 1024, NULL, infoLog);
+         qDebug() << infoLog;
+     }
 
 
     ID = GL::funcs.glCreateProgram();
@@ -83,6 +83,9 @@ void Shader::use(){
 }
 void Shader::setInt(const std::string name, int value){
     GL::funcs.glUniform1i(GL::funcs.glGetUniformLocation(ID, name.c_str()), value);
+}
+void Shader::setUInt(const std::string name, unsigned int value){
+    GL::funcs.glUniform1ui(GL::funcs.glGetUniformLocation(ID, name.c_str()), value);
 }
 void Shader::setFloat(const std::string name, float value){
     GL::funcs.glUniform1f(GL::funcs.glGetUniformLocation(ID, name.c_str()), value);
