@@ -16,6 +16,13 @@ void ShaderManager::initialize(){
     shaders["radixSortShader"] = new Shader("shaders/radixSort.cs");
     shaders["bitonicSortShader"] = new Shader("shaders/bitonicSort.cs");
     shaders["clearBufferShader"] = new Shader("shaders/clearBuffer.cs");
+    shaders["computeCenterShader"] = new Shader("shaders/computeCenter.cs");
+    shaders["computeMortonCodesShader"] = new Shader("shaders/generateMortonCodes.cs");
+
+    shaders["SAHShader"] = new Shader("shaders/SAH.cs");
+    shaders["preCompactionShader"] = new Shader("shaders/preCompactionShader.cs");
+    shaders["compactionShader"] = new Shader("shaders/compactionShader.cs");
+    shaders["reorderTrianglesShader"] = new Shader("shaders/reorderTriangles.cs");
 }
 
 Shader* ShaderManager::getShader(std::string name){

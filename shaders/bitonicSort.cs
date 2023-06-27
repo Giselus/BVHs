@@ -2,23 +2,38 @@
 
 #define MAX_INT 2147483647
 
-layout (local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
+
+struct triangle{
+    vec4 position[3];
+    vec4 color;
+    vec4 center;
+    int code;
+};
+
+struct pair{
+    uint x;
+    int y;
+    int z;
+};
 
 layout (std430, binding = 0) buffer Input{
-    int data[];
+    triangle data[];
 } T;
 
 layout (std430, binding = 1) buffer Result{
-    int data[];
+    triangle data[];
 } R;
 
 uniform int n;
 uniform int chunkSize;
 
-shared int first_chunk[gl_WorkGroupSize.x];
-shared int second_chunk[gl_WorkGroupSize.x];
+shared pair first_chunk[gl_WorkGroupSize.x];
+shared pair second_chunk[gl_WorkGroupSize.x];
 
 shared int reduce_array[gl_WorkGroupSize.x];
+
+shared triangle first_swap_buf[gl_WorkGroupSize.x];
 
 //sums array, final result is in reduce_array[0]
 void reduce(){
@@ -55,21 +70,27 @@ void main(){
 
     uint first_el;
     uint second_el;
-    int tmp;
+    pair tmp;
     for(int i = 0; i < steps; i++){
-        if(first_it + localID < first_block_end)
-            first_chunk[localID] = T.data[first_it + localID];
-        else
-            first_chunk[localID] = MAX_INT;
-
-        if(second_it + gl_WorkGroupSize.x - localID - 1 < second_block_end)
-            second_chunk[localID] = T.data[second_it + gl_WorkGroupSize.x - localID - 1];
-        else
-            second_chunk[localID] = MAX_INT;
+        first_chunk[localID].y = 1;
+        if(first_it + localID < first_block_end){
+            first_chunk[localID].x = first_it + localID;
+            first_chunk[localID].z = T.data[first_it + localID].code;
+        }else{
+            first_chunk[localID].x = -1;
+            first_chunk[localID].z = MAX_INT;
+        }
+        second_chunk[localID].y = 2;
+        if(second_it + gl_WorkGroupSize.x - localID - 1 < second_block_end){
+            second_chunk[localID].x = second_it + gl_WorkGroupSize.x - localID - 1;
+            second_chunk[localID].z = T.data[second_it + gl_WorkGroupSize.x - localID - 1].code;
+        }else{
+            second_chunk[localID].x = -1;
+            second_chunk[localID].z = MAX_INT;
+        }
         barrier();
         memoryBarrierShared();
-
-        if(first_chunk[localID] <= second_chunk[localID]){
+        if(first_chunk[localID].z <= second_chunk[localID].z){
             reduce_array[localID] = 1;
         }else{
             reduce_array[localID] = 0;
@@ -87,7 +108,7 @@ void main(){
                 in_group_id = localID & mask;
                 first_el = h * group * 2 + in_group_id;
                 second_el = first_el + h;
-                if(first_chunk[first_el] > first_chunk[second_el]){
+                if(first_chunk[first_el].z > first_chunk[second_el].z){
                     tmp = first_chunk[first_el];
                     first_chunk[first_el] = first_chunk[second_el];
                     first_chunk[second_el] = tmp;
@@ -97,10 +118,25 @@ void main(){
             barrier();
             memoryBarrierShared();
         }
-
-        //save data
-        if(offset + localID < n)
-            R.data[offset + localID] = first_chunk[localID];
+        barrier();
+        memoryBarrierShared();
+        if(first_chunk[localID].x != -1){
+            if(first_chunk[localID].y == 1){
+                first_swap_buf[localID] = T.data[first_chunk[localID].x];
+            }
+        }
+        barrier();
+        memoryBarrierShared();
+        if(first_chunk[localID].x != -1){
+            if(first_chunk[localID].y == 2){
+                first_swap_buf[localID] = T.data[first_chunk[localID].x];
+            }
+        }
+        barrier();
+        memoryBarrierShared();
+        if(offset + localID < n){
+            R.data[offset + localID] = first_swap_buf[localID];
+        }
         offset += gl_WorkGroupSize.x;
         //increment iterators
         reduce();

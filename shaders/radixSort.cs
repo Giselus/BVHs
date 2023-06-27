@@ -2,12 +2,27 @@
 
 #define MAX_INT 2147483647
 
-//can't use define below
+struct triangle{
+    vec4 position[3];
+    vec4 color;
+    vec4 center;
+    int code;
+};
+
+struct pair{
+    uint x;
+    int y;
+};
+
 layout (local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
 
 layout (std430, binding = 0) buffer Input{
-    int data[];
+    triangle data[];
 } T;
+
+layout (std430, binding = 1) buffer Result{
+    triangle data[];
+} R;
 
 uniform int n;
 uniform int bits;
@@ -39,22 +54,27 @@ void prefix_sum(){
     }
 }
 
-shared int shared_data[gl_WorkGroupSize.x * 2];
-shared int swap_table[gl_WorkGroupSize.x * 2];
+shared pair shared_data[gl_WorkGroupSize.x * 2];
+shared pair swap_table[gl_WorkGroupSize.x * 2];
 
 void main(){
     uint id = gl_GlobalInvocationID.x;
     uint localID = gl_LocalInvocationID.x;
 
-    if(id * 2 < n)
-        shared_data[localID * 2] = T.data[id * 2];
-    else
-        shared_data[localID * 2] = MAX_INT;
-    if(id * 2 + 1 < n)
-        shared_data[localID * 2 + 1] = T.data[id * 2 + 1];
-    else
-        shared_data[localID * 2 + 1] = MAX_INT;
-
+    if(id * 2 < n){
+        shared_data[localID * 2].x = id * 2;
+        shared_data[localID * 2].y = T.data[id * 2].code;
+    }else{
+        shared_data[localID * 2].x = -1;
+        shared_data[localID * 2].y = MAX_INT;
+    }
+    if(id * 2 + 1 < n){
+        shared_data[localID * 2 + 1].x = id * 2 + 1;
+        shared_data[localID * 2 + 1].y = T.data[id * 2 + 1].code;
+    }else{
+        shared_data[localID * 2 + 1].x = -1;
+        shared_data[localID * 2 + 1].y = MAX_INT;
+    }
     uint mask;
     uint zeroCount;
     uint destination;
@@ -62,12 +82,12 @@ void main(){
     memoryBarrierShared();
     for(int i = 0; i < bits; i++){
         mask = (1 << i);
-        if(mask & shared_data[localID * 2])
+        if(mask & shared_data[localID * 2].y)
             pref_in[localID * 2] = 1;
         else
             pref_in[localID * 2] = 0;
 
-        if(mask & shared_data[localID * 2 + 1])
+        if(mask & shared_data[localID * 2 + 1].y)
             pref_in[localID * 2 + 1] = 1;
         else
             pref_in[localID * 2 + 1] = 0;
@@ -102,7 +122,7 @@ void main(){
         memoryBarrierShared();
     }
     if(id * 2 < n)
-        T.data[id * 2] = shared_data[localID * 2];
+        R.data[id * 2] = T.data[shared_data[localID * 2].x];
     if(id * 2 + 1 < n)
-        T.data[id * 2 + 1] = shared_data[localID * 2 + 1];
+        R.data[id * 2 + 1] = T.data[shared_data[localID * 2 + 1].x];
 }

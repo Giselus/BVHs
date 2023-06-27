@@ -24,13 +24,19 @@ set(PROJECT_SOURCES
         opengl/gl.cpp
         opengl/openglwindow.h
         opengl/openglwindow.cpp
+        utils/compactQueue.h
+        utils/computeCenters.h
+        utils/computeMortonCodes.h
+        utils/load_obj.h
         utils/math.h
         utils/prefixsum.h
         utils/radixsort.h
+        utils/SAH.h
         utils/shader.h
         utils/shader.cpp
         utils/shadermanager.h
         utils/shadermanager.cpp
+        utils/triangle.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -84,3 +90,9 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_SOURCE_DIR}/shaders/
                 ${CMAKE_BINARY_DIR}/shaders/)
+
+add_custom_command(
+        TARGET LBVH POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/media/
+                ${CMAKE_BINARY_DIR}/media/)

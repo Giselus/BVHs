@@ -1,10 +1,15 @@
 #include "drawwindow.h"
 
 #include "gl.h"
+#include "../utils/computeCenters.h"
+#include "../utils/computeMortonCodes.h"
+#include "../utils/load_obj.h"
 #include "../utils/prefixsum.h"
 #include "../utils/radixsort.h"
+#include "../utils/SAH.h"
 #include "../utils/shader.h"
 #include "../utils/shadermanager.h"
+#include "../utils/triangle.h"
 
 #include <chrono>
 
@@ -65,17 +70,19 @@ void DrawWindow::initialize(){
     GL::funcs.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
     GL::funcs.glBindImageTexture(0, textureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-
 //    int n = 1000000;
-//    int *randomNums = (int*)malloc(sizeof(int) * n);
+//    triangle *randomTriangles = (triangle*)malloc(sizeof(triangle) * n);
 //    for(int i = 0; i < n; i++){
-//        randomNums[i] = rand()%1000;
+//        for(int j = 0; j < 12; j++){
+//            randomTriangles[i].position[j] = (float)(rand()%1024)/1024.0;
+//        }
+//        randomTriangles[i].code = rand()%20;
 //    }
 
 //    unsigned int inputID;
 //    GL::funcs.glGenBuffers(1, &inputID);
 //    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, inputID);
-//    GL::funcs.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int) * n, randomNums, GL_STATIC_DRAW);
+//    GL::funcs.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(triangle) * n, randomTriangles, GL_DYNAMIC_DRAW);
 //    GL::funcs.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, inputID);
 //    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 //    GL::funcs.glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -89,26 +96,24 @@ void DrawWindow::initialize(){
 ////    outputID = prefixSum(n, inputID, true);
 //    outputID = radixSort(n, 30, inputID);
 
-//    GL::funcs.glEndQuery(GL_TIME_ELAPSED);
-//    int done = 0;
-//    while(!done){
-//        GL::funcs.glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
-//    }
-//    GL::funcs.glGetQueryObjectui64v(query, GL_QUERY_RESULT, &elapsed_time);
+////    GL::funcs.glEndQuery(GL_TIME_ELAPSED);
+////    int done = 0;
+////    while(!done){
+////        GL::funcs.glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
+////    }
+////    GL::funcs.glGetQueryObjectui64v(query, GL_QUERY_RESULT, &elapsed_time);
 ////    printBuffer<int>(n, outputID);
-//    int *outArr = getArrayFromBuffer<int>(n, outputID);
-//    std::sort(randomNums, randomNums + n);
+//    triangle *outArr = getArrayFromBuffer<triangle>(n, outputID);
+////    std::sort(randomNums, randomNums + n);
 //    for(int i = 1; i < n; i++){
-//        if(outArr[i] != randomNums[i]){
-//            printBuffer<int>(i, 10, outputID);
-//            qDebug() << "Array is not sorted!" << i << randomNums[i] << outArr[i];
+//        if(outArr[i].code < outArr[i-1].code){
+////            printBuffer<int>(i, 10, outputID);
+//            qDebug() << "Array is not sorted!" << i;
 //            break;
 //        }
 //    }
-//    qDebug() << "radix sort took " << (float)elapsed_time/1000000.0 << " ms";
+////    qDebug() << "radix sort took " << (float)elapsed_time/1000000.0 << " ms";
 //    GL::funcs.glDeleteBuffers(1, &outputID);
-
-
 }
 
 void DrawWindow::render(){
@@ -141,44 +146,78 @@ void DrawWindow::render(){
     GL::funcs.glDrawArrays(GL_TRIANGLES, 0, 6);
 
 //    int n = 12486;
+//    int n = 49000;
+    int n = 69451;
+//    int n = 1024 * 8;
 //    int n = 100000;
-    int n = 1000000;
+//    int n = 1000000;
+//    int n = 12000000;
 //    int n = 50000000;
 //    int n = 409600;
-    int *randomNums = (int*)malloc(sizeof(int) * n);
+//    int n = 174000;
+    srand(time(NULL));
+    float *data = load_obj("media/bunny.obj");
+    triangle *randomInput = (triangle*)malloc(sizeof(triangle) * n);
     for(int i = 0; i < n; i++){
-        randomNums[i] = rand()%1000000;
+        for(int j = 0; j < 12; j++){
+            randomInput[i].position[j] = data[i * 12 + j];
+        }
+        randomInput[i].code = i;
     }
-    int *expectedOutput = (int*)malloc(sizeof(int) * n);
-    unsigned int inputID;
-    GL::funcs.glGenBuffers(1, &inputID);
-    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, inputID);
-    GL::funcs.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int) * n, randomNums, GL_STATIC_DRAW);
-    GL::funcs.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, inputID);
+    unsigned int triangleBuffer;
+    GL::funcs.glGenBuffers(1, &triangleBuffer);
+    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, triangleBuffer);
+    GL::funcs.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(triangle) * n, randomInput, GL_STATIC_DRAW);
+    GL::funcs.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangleBuffer);
     GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     GL::funcs.glMemoryBarrier(GL_ALL_BARRIER_BITS);
-    for(int i = 0; i < 5; i++){
+
+    node *nodeInput = (node*)malloc(sizeof(node) * 1);
+    nodeInput[0].interval[0] = 0;
+    nodeInput[0].interval[1] = n-1;
+    nodeInput[0].father = 0;
+
+    unsigned int nodeBuffer;
+    GL::funcs.glGenBuffers(1, &nodeBuffer);
+    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, nodeBuffer);
+    GL::funcs.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(node) * n, NULL, GL_STATIC_DRAW);
+    GL::funcs.glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(node), nodeInput);
+    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    GL::funcs.glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+    unsigned int *queueInput = (unsigned int*)malloc(sizeof(unsigned int) * 1);
+    queueInput[0] = 0;
+
+    unsigned int queueBuffer;
+    GL::funcs.glGenBuffers(1, &queueBuffer);
+    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, queueBuffer);
+    GL::funcs.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned int) * n, NULL, GL_STATIC_DRAW);
+    GL::funcs.glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(unsigned int), queueInput);
+    GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    GL::funcs.glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+    for(int i = 0; i < 1; i++){
         GLuint query;
         GLuint64 elapsed_time;
         GL::funcs.glGenQueries(1, &query);
         GL::funcs.glBeginQuery(GL_TIME_ELAPSED, query);
-        unsigned int outputID;
-//        outputID = prefixSum(n, inputID, 1);
-        outputID = radixSort(n, 30, inputID);
+
+        triangleBuffer = computeCenters(n, triangleBuffer);
+//        triangleBuffer = computeMortonCodes(n, triangleBuffer);
+
+        SAH(n, 0, 1, nodeBuffer, triangleBuffer, queueBuffer);
+
         GL::funcs.glEndQuery(GL_TIME_ELAPSED);
         int done = 0;
         while(!done){
             GL::funcs.glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
         }
         GL::funcs.glGetQueryObjectui64v(query, GL_QUERY_RESULT, &elapsed_time);
-        qDebug() << "radix sort took " << (float)elapsed_time/1000000.0 << " ms";
-        GL::funcs.glDeleteBuffers(1, &outputID);
+        qDebug() << "SAH computation " << (float)elapsed_time/1000000.0 << " ms";
     }
-//    auto start = std::chrono::high_resolution_clock::now();
-//    std::sort(randomNums, randomNums + n);
-
-//    auto stop = std::chrono::high_resolution_clock::now();
-//    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-//    qDebug() << "stl sort took:" << duration.count()/1000.0 << " ms";
-
+    GL::funcs.glDeleteBuffers(1, &triangleBuffer);
+    delete[] randomInput;
+    delete[] nodeInput;
+    delete[] queueInput;
+    exit(0);
 }
