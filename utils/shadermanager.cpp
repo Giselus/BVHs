@@ -11,7 +11,6 @@ void ShaderManager::initialize(){
     shaders["substractArraysShader"] = new Shader("shaders/substractArrays.cs");
     shaders["radixSortShader"] = new Shader("shaders/radixSort.cs");
     shaders["bitonicSortShader"] = new Shader("shaders/bitonicSort.cs");
-    shaders["clearBufferShader"] = new Shader("shaders/clearBuffer.cs");
     shaders["computeCenterShader"] = new Shader("shaders/computeCenter.cs");
     shaders["computeMortonCodesShader"] = new Shader("shaders/generateMortonCodes.cs");
 
