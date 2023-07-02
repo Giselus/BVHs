@@ -1,6 +1,6 @@
 #version 430 core
 
-layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 struct triangle{
     vec4 position[3];
@@ -14,12 +14,12 @@ struct node{
     vec4 box[2];
     uint children[2];
     uint interval[2];
-    uint father;
+    uint parent;
 };
 
 struct possibleSplit{
     uint interval[2];
-    uint father;
+    uint parent;
 };
 
 layout (std430, binding = 0) buffer Nodes{
@@ -114,16 +114,9 @@ void main(){
 
     uint l = w.interval[0];
     uint r = w.interval[1];
-//    uint l = splitID * 3000;
-//    uint r = l + 3000 - 1;
-
-    //TODO: come up with better rand
 
     uint dim = rand(0, 2, localID);
     float splitPos = triangles.data[rand(l,r,localID)].center[dim];
-
-//    uint dim = localID % 3;
-//    float splitPos = triangles.data[((dim / 3) * (r-l+1)) / 11 + l].center[dim];
 
     vec4 leftBox[2];
     vec4 rightBox[2];
@@ -206,11 +199,12 @@ void main(){
     uint onLeftLocal = 0;
     uint onRightLocal = 0;
     for(uint offset = l; offset <= r; offset+=gl_WorkGroupSize.x){
-        if(offset + localID <= r)
+        if(offset + localID <= r){
             if(triangles.data[offset + localID].center[dim] <= splitPos)
                 onLeftLocal++;
             else
                 onRightLocal++;
+        }
     }
 
     prefix_sum_array[localID] = onLeftLocal;
@@ -258,6 +252,7 @@ void main(){
 
     barrier();
     memoryBarrierShared();
+    memoryBarrierBuffer();
 
     for(uint offset = l; offset <= r; offset += gl_WorkGroupSize.x){
         if(offset + localID <= r){
@@ -292,11 +287,11 @@ void main(){
         }else{
             nextQueue.data[splitID * 2].interval[0] = l;
             nextQueue.data[splitID * 2].interval[1] = l + onLeftGlobal - 1;
-            nextQueue.data[splitID * 2].father = nodeID;
+            nextQueue.data[splitID * 2].parent = nodeID;
 
             nextQueue.data[splitID * 2 + 1].interval[0] = l + onLeftGlobal;
             nextQueue.data[splitID * 2 + 1].interval[1] = r;
-            nextQueue.data[splitID * 2 + 1].father = nodeID;
+            nextQueue.data[splitID * 2 + 1].parent = nodeID;
         }
     }
 }

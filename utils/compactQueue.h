@@ -21,8 +21,8 @@ void compactQueue(int n, int &lastID, int &queueSize, int &smallQueueSize, unsig
     Shader *preCompactionShader = ShaderManager::getShader("preCompactionShader");
     Shader *compactionShader = ShaderManager::getShader("compactionShader");
 
-    unsigned int prefixSumBuffer = createEmptySSBO<unsigned int>(n);
-    unsigned int smallQueuePrefixSumBuffer = createEmptySSBO<unsigned int>(n);
+    unsigned int prefixSumBuffer = createEmptySSBO<unsigned int>(n, true);
+    unsigned int smallQueuePrefixSumBuffer = createEmptySSBO<unsigned int>(n, true);
 
     preCompactionShader->use();
     preCompactionShader->setInt("n", queueSize * 2);
@@ -39,8 +39,6 @@ void compactQueue(int n, int &lastID, int &queueSize, int &smallQueueSize, unsig
 
     unsigned int newSplits = getElementFromBuffer<unsigned int>(2 * queueSize - 1, prefixSumOutput);
     unsigned int newSmallSplits = getElementFromBuffer<unsigned int>(2 * queueSize - 1, smallQueuePrefixSumOutput);
-
-//    std::cout << test << " " << test2 << "*\n";
 
     GL::funcs.glDeleteBuffers(1, &prefixSumBuffer);
     GL::funcs.glDeleteBuffers(1, &smallQueuePrefixSumBuffer);

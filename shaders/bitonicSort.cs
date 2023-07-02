@@ -2,12 +2,13 @@
 
 #define MAX_INT 2147483647
 
-layout (local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
+layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 struct triangle{
     vec4 position[3];
     vec4 color;
     vec4 center;
+    vec4 box[2];
     int code;
 };
 
@@ -35,7 +36,7 @@ shared int reduce_array[gl_WorkGroupSize.x];
 
 shared triangle first_swap_buf[gl_WorkGroupSize.x];
 
-//sums array, final result is in reduce_array[0]
+//reduces array, final result is in reduce_array[0]
 void reduce(){
     uint localID = gl_LocalInvocationID.x;
     uint LOG = uint(log2(gl_WorkGroupSize.x));

@@ -14,12 +14,12 @@ struct node{
     vec4 box[2];
     uint children[2];
     uint interval[2];
-    uint father;
+    uint parent;
 };
 
 struct possibleSplit{
     uint interval[2];
-    uint father;
+    uint parent;
 };
 
 layout (std430, binding = 0) buffer Nodes{
@@ -292,11 +292,11 @@ void main(){
         }else{
             nextQueue.data[splitID * 2].interval[0] = l;
             nextQueue.data[splitID * 2].interval[1] = l + onLeftGlobal - 1;
-            nextQueue.data[splitID * 2].father = nodeID;
+            nextQueue.data[splitID * 2].parent = nodeID;
 
             nextQueue.data[splitID * 2 + 1].interval[0] = l + onLeftGlobal;
             nextQueue.data[splitID * 2 + 1].interval[1] = r;
-            nextQueue.data[splitID * 2 + 1].father = nodeID;
+            nextQueue.data[splitID * 2 + 1].parent = nodeID;
         }
     }
 }

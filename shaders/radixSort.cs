@@ -6,6 +6,7 @@ struct triangle{
     vec4 position[3];
     vec4 color;
     vec4 center;
+    vec4 box[2];
     int code;
 };
 
@@ -82,12 +83,12 @@ void main(){
     memoryBarrierShared();
     for(int i = 0; i < bits; i++){
         mask = (1 << i);
-        if(mask & shared_data[localID * 2].y)
+        if((mask & shared_data[localID * 2].y) != 0)
             pref_in[localID * 2] = 1;
         else
             pref_in[localID * 2] = 0;
 
-        if(mask & shared_data[localID * 2 + 1].y)
+        if((mask & shared_data[localID * 2 + 1].y) != 0)
             pref_in[localID * 2 + 1] = 1;
         else
             pref_in[localID * 2 + 1] = 0;

@@ -16,11 +16,12 @@ layout (std430, binding = 0) buffer Input{
 
 
 uniform int n;
+uniform int bits;
 
 int interleve(float x){
-    int y = int(x * 1024.0);
+    int y = int(x * float(1 << bits));
     int res = 0;
-    for(int i = 0; i < 10; i++){
+    for(int i = 0; i < bits; i++){
         res |= ((y & (1 << i)) << (2*i));
     }
     return res;

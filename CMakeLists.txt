@@ -27,6 +27,7 @@ set(PROJECT_SOURCES
         utils/compactQueue.h
         utils/computeCenters.h
         utils/computeMortonCodes.h
+        utils/LBVH.h
         utils/load_obj.h
         utils/math.h
         utils/prefixsum.h
