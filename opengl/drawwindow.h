@@ -13,8 +13,11 @@ public:
 private:
     unsigned int VAO, VBO;
 
-    unsigned int TEXTURE_WIDTH = 512, TEXTURE_HEIGHT = 512;
+    unsigned int TEXTURE_WIDTH = 1024, TEXTURE_HEIGHT = 1024;
     unsigned int textureID;
+
+    unsigned int triangleBuffer, nodeBuffer, queueBuffer, rayBuffer;
+    int counter = 0;
 };
 
 #endif // DRAWWINDOW_H

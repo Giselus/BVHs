@@ -1,5 +1,7 @@
 #version 430 core
 
+//Given camera position and direction, generates rays from it
+
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 struct ray{

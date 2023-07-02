@@ -1,5 +1,7 @@
 #version 430 core
 
+//Radix sort, sorts only consecutive blocks of 1024 elements
+
 #define MAX_INT 2147483647
 
 struct triangle{

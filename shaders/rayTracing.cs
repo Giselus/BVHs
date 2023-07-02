@@ -1,5 +1,7 @@
 #version 430 core
 
+//Packet based ray tracing algorithm based on paper that wasn't explained in my work, only mentioned
+
 #define STACK_LIMIT 128
 
 layout (local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
@@ -121,22 +123,6 @@ void main(){
         return;
     }
     ray r = rays.data[ID];
-
-//    r.closestDistance = 1e4;
-//    for(uint offset = 0; offset <= 69450; offset += gl_WorkGroupSize.x){
-//        if(offset + localID <= 69450)
-//            triangle_batch[localID] = triangles.data[offset + localID];
-//        barrier();
-//        memoryBarrierShared();
-//        for(uint k = 0; k < gl_WorkGroupSize.x && offset + k <= 69450; k++){
-//            r.closestDistance = min(r.closestDistance, intersectTriangle(r, triangle_batch[k]));
-//        }
-//        barrier();
-//        memoryBarrierShared();
-//    }
-
-//    rays.data[ID] = r;
-//    return;
 
     vec4 inv = vec4(1.0) / r.dir;
     //enough due to scalling scene to [0,1]

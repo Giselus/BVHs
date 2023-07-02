@@ -1,5 +1,7 @@
 #version 430 core
 
+//Construction algorithms don't fill children for each node, only parents. So this step performs this step instead
+
 layout (local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 struct node{

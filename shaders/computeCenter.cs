@@ -1,5 +1,7 @@
 #version 430 core
 
+//Computes center for every triangle, center for triangle is center of its bounding box
+
 layout (local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 struct triangle{

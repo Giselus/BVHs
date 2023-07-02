@@ -1,5 +1,7 @@
 #version 430 core
 
+//Second phase of finding and relabelling first 6 levels of LBVH tree for hybrid algorithm. Gets values from getActiveSplits.cs and relabells nodes' IDs.
+
 layout (local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 struct triangle{

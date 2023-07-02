@@ -14,15 +14,7 @@ void SAH(int n, int lastID, int queueSize, unsigned int nodeBuffer, unsigned int
     unsigned int triangleSwapBuffer = createEmptySSBO<triangle>(n);
     unsigned int queueSwapBuffer = createEmptySSBO<possibleSplit>(n);
     unsigned int smallQueueBuffer = createEmptySSBO<unsigned int>(n);
-//    auto x = getArrayFromBuffer<node>(lastID+1, nodeBuffer);
-//    for(int i = 0; i <= lastID; i++){
-//        qDebug() << i << x[i].interval[0] << x[i].interval[1] << x[i].children[0] << x[i].children[1] << x[i].parent;
-//    }
-//    auto t = getArrayFromBuffer<triangle>(n, triangleBuffer);
-//    auto t2 = getArrayFromBuffer<unsigned int>(queueSize, queueBuffer);
-//    for(int i = 0; i < queueSize; i++){
-//        qDebug() << i << t2[i];
-//    }
+
     Shader* SAHShader = ShaderManager::getShader("SAHShader");
 
     int smallQueueSize = 0;
@@ -30,13 +22,7 @@ void SAH(int n, int lastID, int queueSize, unsigned int nodeBuffer, unsigned int
     while(queueSize != 0){
         level++;
         SAHShader->use();
-//        SAHShader->setInt("ss", rand() * rand());
-//        if(level <= 2){
-//            x = getArrayFromBuffer<node>(lastID+1, nodeBuffer);
-//            for(int i = 0; i < 37; i++){
-//                qDebug() << i << x[i].interval[0] << x[i].interval[1] << x[i].children[0] << x[i].children[1] << x[i].parent;
-//            }
-//        }
+
         GL::funcs.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, nodeBuffer);
         GL::funcs.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, triangleBuffer);
         GL::funcs.glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, triangleSwapBuffer);
@@ -62,11 +48,6 @@ void SAH(int n, int lastID, int queueSize, unsigned int nodeBuffer, unsigned int
     GL::funcs.glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
     GL::funcs.glDeleteBuffers(1, &atomicCountersBuffer);
-
-//    x = getArrayFromBuffer<node>(lastID+1, nodeBuffer);
-//    for(int i = 0; i <= 36; i++){
-//        qDebug() << i << x[i].interval[0] << x[i].interval[1] << x[i].children[0] << x[i].children[1] << x[i].parent;
-//    }
 
     atomicCountersBuffer = createEmptySSBO<unsigned int>(2 * n, true);
 

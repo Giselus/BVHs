@@ -1,5 +1,7 @@
 #version 430 core
 
+//First phase of queue compaction, sets 0/1 flags for empty/occupied cells in queue to calculate prefix sum later
+
 #define SMALL_THRESHOLD (32)
 
 layout (local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;

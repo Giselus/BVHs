@@ -10,14 +10,26 @@ public:
 };
 
 template <typename T>
-unsigned int createEmptySSBO(int n){
-    unsigned int result;
+void copyBuffer(int n, unsigned int srcBuffer, unsigned int dstBuffer){
+    GL::funcs.glBindBuffer(GL_COPY_READ_BUFFER, srcBuffer);
+    GL::funcs.glBindBuffer(GL_COPY_WRITE_BUFFER, dstBuffer);
+    GL::funcs.glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, n * sizeof(T));
+    GL::funcs.glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    GL::funcs.glBindBuffer(GL_COPY_READ_BUFFER, 0);
+    GL::funcs.glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+}
 
+template <typename T>
+unsigned int createEmptySSBO(int n, bool clear = false){
+    unsigned int result;
     GL::funcs.glGenBuffers(1, &result);
     GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, result);
     GL::funcs.glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(T) * n, nullptr, GL_STATIC_COPY);
+//    if(clear){
+        float val = 0.0f;
+        GL::funcs.glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &val);
+//    }
     GL::funcs.glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
     return result;
 }
 

@@ -1,5 +1,7 @@
 #version 430 core
 
+//Assumes that array consists of blocks of $chunkSize sorted elements and merges pairs of consecutive blocks: 1 with 2, 3 with 4,...
+
 #define MAX_INT 2147483647
 
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;

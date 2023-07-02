@@ -1,5 +1,8 @@
 #version 430 core
 
+//Compacts active queue, shifting elements to the left to eliminate empty positions
+//Gets prefix sums of values from preCompaction.cs to know positions of every object
+
 #define SMALL_THRESHOLD (32)
 
 layout (local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;

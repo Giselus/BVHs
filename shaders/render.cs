@@ -1,5 +1,7 @@
 #version 430 core
 
+//Nothing interesting, actually filling some color values based on rays' intersected objects
+
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 struct ray{

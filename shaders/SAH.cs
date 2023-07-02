@@ -1,5 +1,7 @@
 #version 430 core
 
+//SAH algorithm with 256 sampled planes for each split.
+
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 struct triangle{
@@ -184,18 +186,6 @@ void main(){
     splitPos = reduce_array[0].splitPos;
     cost = reduce_array[0].cost;
 
-//    if(cost > fullArea * (r - l + 1)){
-//        //don't split
-//        if(localID == 0){
-//            nextQueue.data[splitID * 2].interval[0] = 1;
-//            nextQueue.data[splitID * 2].interval[1] = 0;
-
-//            nextQueue.data[splitID * 2 + 1].interval[0] = 1;
-//            nextQueue.data[splitID * 2 + 1].interval[1] = 0;
-//        }
-//        return;
-//    }
-
     uint onLeftLocal = 0;
     uint onRightLocal = 0;
     for(uint offset = l; offset <= r; offset+=gl_WorkGroupSize.x){
@@ -263,27 +253,12 @@ void main(){
     //add new splits to queue
 
     if(localID == 0){
-//        nextQueue.data[splitID * 2].interval[0] = l;
-//        nextQueue.data[splitID * 2].interval[1] = l + onLeftGlobal - 1;
-//        nextQueue.data[splitID * 2].father = nodeID;
-
-//        nextQueue.data[splitID * 2 + 1].interval[0] = l + onLeftGlobal;
-//        nextQueue.data[splitID * 2 + 1].interval[1] = r;
-//        nextQueue.data[splitID * 2 + 1].father = nodeID;
-
         if(onLeftGlobal == 0 || onRightGlobal == 0){
             nextQueue.data[splitID * 2].interval[0] = 1;
             nextQueue.data[splitID * 2].interval[1] = 0;
 
             nextQueue.data[splitID * 2 + 1].interval[0] = 1;
             nextQueue.data[splitID * 2 + 1].interval[1] = 0;
-
-//            uint m = (l+r)/2;
-//            nextQueue.data[splitID * 2].interval[0] = l;
-//            nextQueue.data[splitID * 2].interval[1] = m;
-
-//            nextQueue.data[splitID * 2 + 1].interval[0] = m+1;
-//            nextQueue.data[splitID * 2 + 1].interval[1] = r;
         }else{
             nextQueue.data[splitID * 2].interval[0] = l;
             nextQueue.data[splitID * 2].interval[1] = l + onLeftGlobal - 1;

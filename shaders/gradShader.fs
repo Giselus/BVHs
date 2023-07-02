@@ -1,4 +1,7 @@
 #version 430 core
+
+//Rendering, nothing interesting here, as it's just OpenGL functionality
+
 out vec4 FragColor;
 
 in vec2 TexCoords;
